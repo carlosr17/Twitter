@@ -4,20 +4,27 @@
 
 {% block content %}	
 <div class="col-md-10 col-md-offset-1" >
-<div class="page-header">
-  <h1>Consulta en Twitter</h1>
-</div>
-		<div class="col-md-12" style="margin-bottom:20px;">
-		<input id="search"/>
+	<div class="page-header">
+ 		 <h1>Consulta en Twitter</h1>
+	</div>
+	<div class="col-md-12 jumbotron" style="margin-bottom:20px;">
+		<p>Ingrese la palabra que quiere consultar</p>
+		<input id="search" placeholder="Palabra a consutar"/>&nbsp;&nbsp;&nbsp;
 		<button onclick="searchKey()">Buscar</button>
-		</div>
-		<div class="col-md-8" id="tweets">
-		</div>
-		<div class="col-md-4" id="keys">
-		</div>
+	</div>
+	<div class="col-md-12" style="margin-bottom:20px;" id="error"></div>
+	<div class="col-md-8" id="tweets">
+	</div>
+	<div class="col-md-4" id="keys">
+	</div>
 <script>
 	function searchKey(){
+		$("#error").html("");
 		var key=$("#search").val();
+		if(key.indexOf(" ")>-1 || key==""){
+			lanzarError("Solo se puede consultar una palabra");
+			return;
+		}
 		var divKeys=$("#keys");
 		var divTweets=$("#tweets");
 			$.ajax({
@@ -32,7 +39,9 @@
 					divKeys.html(renderKeys(JSON.parse(historial)));
 					divTweets.html(renderTweets(tweets));
 					}
-				});
+				}).fail(function() {
+		 			lanzarError("Ha ocurrido un error en la operación");
+				});;
 			}
 	function renderKeys(datos){
 		var html="<h2>Historial</h2>"
@@ -58,5 +67,12 @@
 		return "<div class='col-md-12 tweet'>"+
 				"<div class='col-md-2'>"+imagen+"</div>"+"<div class='col-md-10'>"+url_user+tweet.text+tweet.time+"</div></div>";
 		}
+	function lanzarError(error){
+		var divError=$("#error");
+		var aler='<div class="alert alert-danger alert-dismissible fade in" role="alert">'+
+	      		'<button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>'+
+	      		'<h4>'+error+'</h4></div>';
+		divError.html(aler);    
+	}
 </script>
 {% endblock %}		
