@@ -15,6 +15,15 @@ def index(request):
 	params= Context({})
 	return HttpResponse(miTemplate.render(params))
 
+def search(request):
+	key=request.GET['key']
+	palabra = Palabra(nombre=key)
+	palabra.save()
+	keys= Palabra.objects.order_by('-time')
+	data= serializers.serialize('json',keys,fields=('nombre','time'))
+	datos= {"historial":data,'tweets':test(key)}
+	return HttpResponse(json.dumps(datos))
+
 #Metodo Para conultar los ultimos tweets
 def test(key):
 	api = twitter.Api(consumer_key='BrHuCVxSO8sjvaEb7wJA3tt9f',
@@ -28,13 +37,3 @@ def test(key):
 		retorno.append({"text":tweet.text, 'user':tweet.user.screen_name,'time':ts, 'img':tweet.user.profile_image_url})
 	return retorno
 
-class SearchAjaxView(TemplateView):
-
-	def get(self, request, *args, **kwargs):
-		key=request.GET['key']
-		palabra = Palabra(nombre=key)
-		palabra.save()
-		keys= Palabra.objects.order_by('-time')
-		data= serializers.serialize('json',keys,fields=('nombre','time'))
-		datos= {"historial":data,'tweets':test(key)}
-		return HttpResponse(json.dumps(datos))
