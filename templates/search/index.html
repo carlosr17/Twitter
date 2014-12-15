@@ -1,54 +1,62 @@
-<!doctype html>
-<html>
-	<head>
-		<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-	</head>
-	<body>
-		<input id="search"/>
-		<button onclick="searchKey()">Search</button>
-		<div id="tweets">
-		</div>
-		<div id="keys">
-			
-		</div>
-		<script>
-			function searchKey(){
-				var key=$("#search").val();
-				var divKeys=$("#keys");
-				var divTweets=$("#tweets");
-				$.ajax({
-					data:{
-						'key': key
-					},
-					url:'/search/key',
-					type:'get',
-					success: function(data){
-						var historial=JSON.parse(data).historial;
-						var tweets=JSON.parse(data).tweets;
-						divKeys.html(renderKeys(JSON.parse(historial)));
-						divTweets.html(renderTweets(tweets));
+{% extends "base.html" %}
 
+{% block title %}Consulta en Twitter{% endblock %}
+
+{% block content %}	
+<div class="col-md-10 col-md-offset-1" >
+<div class="page-header">
+  <h1>Consulta en Twitter</h1>
+</div>
+		<div class="col-md-12" style="margin-bottom:20px;">
+		<input id="search"/>
+		<button onclick="searchKey()">Buscar</button>
+		</div>
+		<div class="col-md-8" id="tweets">
+		</div>
+		<div class="col-md-4" id="keys">
+		</div>
+<script>
+	function searchKey(){
+		var key=$("#search").val();
+		var divKeys=$("#keys");
+		var divTweets=$("#tweets");
+			$.ajax({
+				data:{
+				'key': key
+				},
+				url:'{% url "search_key" %}',
+				type:'get',
+				success: function(data){
+					var historial=JSON.parse(data).historial;
+					var tweets=JSON.parse(data).tweets;
+					divKeys.html(renderKeys(JSON.parse(historial)));
+					divTweets.html(renderTweets(tweets));
 					}
 				});
 			}
+	function renderKeys(datos){
+		var html="<h2>Historial</h2>"
+		$.each(datos, function(i, item) {
+			html+="<div><b>"+item.fields.nombre+"</b> "+item.fields.time+"</div>";
+			});
+		return html;
+	}
 
-			function renderKeys(datos){
-				var html="<ul>";
-				$.each(datos, function(i, item) {
-    				html+="<li>"+item.fields.nombre+"</li>";
-				});
-				html+="</ul>"
-				return html;
-			}
-			function renderTweets(datos){
-				var html="<ul>";
-				$.each(datos, function(i, item) {
-    				html+="<li>"+item.user+"-"+item.text+"</li>";
-				});
-				html+="</ul>"
-				return html;
-			}
 
-		</script>
-	</body>
-</html>
+	function renderTweets(datos){
+		var html="<h2>Tweets</h2>";
+		$.each(datos, function(i, item) {
+			html+=renderTweet(item);
+		});
+		return html;
+	}
+
+	function renderTweet(tweet){
+		var url="http://www.twitter.com/"+tweet.user;
+		var imagen="<a href='"+url+"'><img src='"+tweet.img+"'/i></a>";
+		var url_user="<a href='"+url+"'>"+tweet.user+"</a>";
+		return "<div class='col-md-12 tweet'>"+
+				"<div class='col-md-2'>"+imagen+"</div>"+"<div class='col-md-10'>"+url_user+tweet.text+tweet.time+"</div></div>";
+		}
+</script>
+{% endblock %}		

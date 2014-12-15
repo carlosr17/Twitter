@@ -6,6 +6,7 @@ from search.models import Palabra
 from django.core import serializers
 import time
 import twitter
+import os
 import json
 
 # Create your views here.
@@ -23,21 +24,17 @@ def test(key):
 	tweets=api.GetSearch(term=key,count=10, lang='es',result_type="recent")
 	retorno=[]
 	for tweet in tweets:
-		retorno.append({"text":tweet.text, 'user':tweet.user.name,'creacion':tweet.created_at})
+		ts = time.strftime('%Y-%m-%d %H:%M:%S', time.strptime(tweet.created_at,'%a %b %d %H:%M:%S +0000 %Y'))
+		retorno.append({"text":tweet.text, 'user':tweet.user.screen_name,'time':ts, 'img':tweet.user.profile_image_url})
 	return retorno
 
 class SearchAjaxView(TemplateView):
 
 	def get(self, request, *args, **kwargs):
 		key=request.GET['key']
-		try:
-			aux = Palabra()
-			palabra = Palabra.objects.get(nombre=key)
-			palabra.save()
-		except Palabra.DoesNotExist:
-			palabra = Palabra(nombre=key)
-			palabra.save()
+		palabra = Palabra(nombre=key)
+		palabra.save()
 		keys= Palabra.objects.order_by('-time')
-		data= serializers.serialize('json',keys,fields=('nombre'))
+		data= serializers.serialize('json',keys,fields=('nombre','time'))
 		datos= {"historial":data,'tweets':test(key)}
 		return HttpResponse(json.dumps(datos))
